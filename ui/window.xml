@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+
+  <!-- Main Window -->
+  <object class="GtkApplicationWindow" id="mainwindow">
+    <property name="title">App Uninstaller</property>
+    <property name="default-width">1280</property>
+    <property name="default-height">720</property>
+
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <!-- Paned Layout -->
+        <child>
+          <object class="GtkPaned" id="paned">
+            <property name="orientation">horizontal</property>
+            <property name="position">300</property>
+            <property name="resize-start-child">true</property>
+            <property name="shrink-start-child">true</property>
+
+            <child>
+              <object class="GtkBox" id="leftpane">
+                <property name="orientation">vertical</property>
+                <property name="width-request">75</property> 
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">Applications</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow" id="scrollwindowleft">
+                    <child>
+                      <object class="GtkListBox" id="applist">
+                        <property name="vexpand">true</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkBox" id="rightpane">
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkScrolledWindow" id="appview">
+                    <property name="visible">false</property>
+                    <property name="hexpand">true</property>
+                    <property name="vexpand">true</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+
+      </object>
+    </child>
+
+  </object>
+</interface>

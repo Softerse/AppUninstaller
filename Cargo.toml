@@ -1,0 +1,14 @@
+[package]
+name    = "LinuxAppUninstaller"
+version = "0.1.0"
+edition = "2021"
+description = "A utility for uninstalling applications on Linux"
+license = "GPL-3.0-only"
+
+[dependencies]
+gtk = { version = "0.9", package = "gtk4", features = ["v4_10"] }
+freedesktop-desktop-entry = "0.7"
+log = "0.4"
+env_logger = "0.11"
+which = "7.0"
+thiserror = "2.0"
