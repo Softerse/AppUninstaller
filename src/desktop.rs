@@ -121,10 +121,10 @@ impl DesktopEntry {
                     ResponseType::Accept => {
                         let delete_result = AppPurger::purge_app(exec.clone(), entry.clone());
                         if delete_result.is_ok() {
-                            Dialog::new("Success", "Application deleted successfully. Any residual files (eg. in /usr/share/) must be deleted manually.").show();
+                            Dialog::new_without_parent("Success", "Application deleted successfully. Any residual files (eg. in /usr/share/) must be deleted manually.").show();
                         } else {
                             let e = delete_result.unwrap_err();
-                            Dialog::new("Error!", &format!("Could not delete this application.\nThe reported error was: '{}'", e.to_string())).show();
+                            Dialog::new_without_parent("Error!", &format!("Could not delete this application.\nThe reported error was: '{}'", e.to_string())).show();
                         }
                     }
                     _ => ()
