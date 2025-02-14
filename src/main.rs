@@ -58,7 +58,7 @@ fn main() -> glib::ExitCode {
             error!("Could not retrieve window object from UI file");
             std::process::exit(-1);
         });
-        Dialog::new("Warning", warningmsg).show();
+        Dialog::new("Warning", warningmsg, &window).show();
 
         let applist: ListBox = builder.object("applist").unwrap_or_else(|| {
             warn!("Failed to retrieve a UI element from the descriptor file");
