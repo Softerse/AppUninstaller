@@ -26,5 +26,6 @@ pub enum Error {
     #[error("Couldn't delete a file for this app ({0})")]
     CouldNotDelete(String),
     #[error("Unknown error")]
+    #[allow(dead_code)]
     UnknownError,
 }
