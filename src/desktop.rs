@@ -20,6 +20,7 @@
 /// along with this program.  If not, see <https://www.gnu.org/licenses/>.
 use crate::dialog::Dialog;
 use crate::purge::AppPurger;
+use crate::utils;
 use freedesktop_desktop_entry::DesktopEntry as FdoDesktopEntry;
 use gtk::{prelude::*, Align, Dialog as GtkDialog, ResponseType};
 use gtk::{Button, Image, Label};
@@ -79,6 +80,15 @@ impl DesktopEntry {
         let exec_widget = Label::new(Some(&format!("Command: {}", self.exec)));
         let desc = Label::new(Some(&format!("Description: {}", self.description.clone())));
         let full = Label::new(Some(&format!("Desktop entry path: {}", self.full_path)));
+        let filesize = Label::new(Some(&format!(
+            "Size on disk: {}KB",
+            utils::get_file_size(
+                which::which(self.exec.clone())
+                    .unwrap_or_default()
+                    .to_string_lossy()
+            )
+            .unwrap_or("0".to_string())
+        )));
         let dltapp = Button::builder()
             .label("Delete Application (!)")
             .css_classes(vec!["destructive-action"])
@@ -142,6 +152,7 @@ impl DesktopEntry {
         view.append(&exec_widget);
         view.append(&desc);
         view.append(&full);
+        view.append(&filesize);
         view.append(&dltapp);
 
         view
