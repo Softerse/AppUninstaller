@@ -1,12 +1,11 @@
-<center>
+<div align=center>
 <img src="assets/appuninstaller.svg" width=192px>
 <h1> 🚀 <b>App Uninstaller</b> – An easy to use program uninstaller for Linux</h1>
-<div align=center>
+
 <img src="https://img.shields.io/badge/License-GPL-3.svg">
 <img src="https://img.shields.io/badge/Made%20with-Rust-orange">
 <img src="https://img.shields.io/badge/GTK-4.0-blue">
 </div>
-</center>
 
 **App Uninstaller** is a sleek and intuitive application designed to make removing programs from your Linux system a breeze. Built with the power of **Rust** for speed and **GTK4** for a modern, user-friendly interface, this open-source tool provides an elegant solution to uninstalling software. Whether you're looking to clean up your system or simply remove an app you no longer need, Linux Uninstaller makes the process fast, easy, and hassle-free.
 
