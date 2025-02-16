@@ -24,7 +24,7 @@ mod utils;
 
 use dialog::Dialog;
 use gtk::glib;
-use gtk::{prelude::*, ListBox, ScrolledWindow};
+use gtk::{prelude::*, ScrolledWindow};
 use gtk::{Application, Builder};
 #[allow(unused_imports)]
 use log::{error, info, warn};
@@ -61,7 +61,7 @@ fn main() -> glib::ExitCode {
         });
         Dialog::new("Warning", STARTUP_MSG, &window).show();
 
-        let applist: ListBox = builder.object("applist").unwrap_or_else(|| {
+        let applist: gtk::Box = builder.object("applist").unwrap_or_else(|| {
             warn!("Failed to retrieve a UI element from the descriptor file");
             std::process::exit(-1);
         });
