@@ -16,7 +16,6 @@
 ///  
 /// You should have received a copy of the GNU General Public License  
 /// along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 mod desktop;
 mod dialog;
 mod error;
@@ -73,7 +72,6 @@ fn main() -> glib::ExitCode {
             });
 
         for a in apps {
-            
             let button = a.create_button_from_entry();
             let appview = appview.clone();
             button.connect_clicked(move |_| {

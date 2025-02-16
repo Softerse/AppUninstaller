@@ -18,7 +18,6 @@
 ///  
 /// You should have received a copy of the GNU General Public License  
 /// along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 use crate::dialog::Dialog;
 use crate::purge::AppPurger;
 use freedesktop_desktop_entry::DesktopEntry as FdoDesktopEntry;
