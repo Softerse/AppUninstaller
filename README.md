@@ -25,7 +25,7 @@ This program is intended to clean up whatever your package manager won't. This i
 Before installing, make sure you have installed Gtk4 (Should be available on almost all modern Linux platforms). Older systems (<2022) may not have it preinstalled.
 
 ### **Downloading** (Recommended for most users)
-> *Coming soon!*
+You can download the executable from [the latest release](https://github.com/tseli0s/AppUninstaller/releases/latest) (Look for the file called `LinuxAppUninstaller.bin`). Once you have downloaded the file, you can simply run it like you would a regular `.exe` file, either by double-clicking or calling it from the command line. There is no installation required, you simply download and use the app.
 
 ### **Build from source** (Recommended for developers and advanced users)
 > *This assumes you have already installed the Rust toolchain. If not, head to https://rust-lang.org and follow the instructions there.*
