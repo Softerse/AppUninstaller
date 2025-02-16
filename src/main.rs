@@ -83,10 +83,9 @@ fn main() -> glib::ExitCode {
                 "gapplication",
                 "java",
             ];
-            if blacklisted_execs
-                .iter()
-                .any(|x|omit_dir_from_cmd((*x.to_owned()).to_string()) == isolate_exec(a.exec.clone()))
-            {
+            if blacklisted_execs.iter().any(|x| {
+                omit_dir_from_cmd((*x.to_owned()).to_string()) == isolate_exec(a.exec.clone())
+            }) {
                 log::warn!("Skipping application \"{}\"", a.name);
                 continue;
             }
