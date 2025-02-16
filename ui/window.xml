@@ -31,8 +31,10 @@
                 <child>
                   <object class="GtkScrolledWindow" id="scrollwindowleft">
                     <child>
-                      <object class="GtkListBox" id="applist">
+                      <object class="GtkBox" id="applist">
                         <property name="vexpand">true</property>
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">4</property>
                       </object>
                     </child>
                   </object>
