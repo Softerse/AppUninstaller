@@ -17,6 +17,7 @@
 /// You should have received a copy of the GNU General Public License  
 /// along with this program.  If not, see <https://www.gnu.org/licenses/>.
 use crate::error::Error;
+use crate::utils::isolate_exec;
 use log::error;
 use log::info;
 use std::path::PathBuf;
@@ -25,15 +26,9 @@ use std::path::PathBuf;
 pub struct AppPurger;
 
 impl AppPurger {
-    /* Isolates the executable from the rest of the command using whitespace detection. */
-    #[inline]
-    fn isolate_exec(cmd: String) -> String {
-        cmd.split_whitespace().next().unwrap_or("").to_owned()
-    }
-
     #[inline]
     fn find_exec(exec: String) -> Option<PathBuf> {
-        match which::which(Self::isolate_exec(exec.clone())) {
+        match which::which(isolate_exec(exec.clone())) {
             Ok(path) => Some(path),
             Err(e) => {
                 error!("Failed to locate \"{}\": {}", exec, e.to_string());
