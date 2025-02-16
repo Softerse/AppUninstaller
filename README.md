@@ -45,6 +45,13 @@ If you have **Rust** and **Cargo** installed, you can easily install Linux Unins
 ```sh
 cargo install --path .
 ```
+If you have **Cargo** yet you don't want to download the source, you can also run this command to install it directly in **Cargo**'s path:
+```sh
+cargo install linux-app-uninstaller
+```
+
+## 💾 **Supported Platforms**:
+App Uninstaller works officially with Linux. The way it works means that it is possibly usable in most BSD and other Unix-like platforms. macOS is not supported.
 
 ## 🖥️ How to Use
 1. Launch the application from your terminal or application menu.
