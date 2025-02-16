@@ -1,7 +1,7 @@
 <center>
+<img src="assets/appuninstaller.svg" width=192px>
 <h1> 🚀 <b>App Uninstaller</b> – An easy to use program uninstaller for Linux</h1>
-
-<div style="display: flex;">
+<div align=center>
 <img src="https://img.shields.io/badge/License-GPL-3.svg">
 <img src="https://img.shields.io/badge/Made%20with-Rust-orange">
 <img src="https://img.shields.io/badge/GTK-4.0-blue">
