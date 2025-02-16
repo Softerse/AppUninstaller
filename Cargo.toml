@@ -13,3 +13,8 @@ log = "0.4"
 env_logger = "0.11"
 which = "7.0"
 thiserror = "2.0"
+
+[profile.release]
+lto = "fat"
+strip = "symbols"
+panic = "abort"
