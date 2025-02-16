@@ -47,7 +47,7 @@ cargo install --path .
 ```
 If you have **Cargo** yet you don't want to download the source, you can also run this command to install it directly in **Cargo**'s path:
 ```sh
-cargo install linux-app-uninstaller
+cargo install LinuxAppUninstaller
 ```
 
 ## 💾 **Supported Platforms**:
