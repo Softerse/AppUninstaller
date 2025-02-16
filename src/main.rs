@@ -20,6 +20,7 @@ mod desktop;
 mod dialog;
 mod error;
 mod purge;
+mod utils;
 
 use dialog::Dialog;
 use gtk::glib;
@@ -27,6 +28,7 @@ use gtk::{prelude::*, ListBox, ScrolledWindow};
 use gtk::{Application, Builder};
 #[allow(unused_imports)]
 use log::{error, info, warn};
+use utils::{isolate_exec, omit_dir_from_cmd};
 
 const STARTUP_MSG: &str = r#"This application is meant to be used for very specific cases, like apps built and installed manually.
 It is NOT a replacement for `apt`, `pacman` or any other package manager. In fact, it can cause problems if you use this app to uninstall
@@ -72,6 +74,23 @@ fn main() -> glib::ExitCode {
             });
 
         for a in apps {
+            let blacklisted_execs = [
+                "flatpak",
+                "xdg-open",
+                "systemsettings",
+                "cinnamon-settings",
+                "gamemoderun",
+                "gapplication",
+                "java",
+            ];
+            if blacklisted_execs
+                .iter()
+                .any(|x|omit_dir_from_cmd((*x.to_owned()).to_string()) == isolate_exec(a.exec.clone()))
+            {
+                log::warn!("Skipping application \"{}\"", a.name);
+                continue;
+            }
+
             let button = a.create_button_from_entry();
             let appview = appview.clone();
             button.connect_clicked(move |_| {
