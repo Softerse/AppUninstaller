@@ -29,6 +29,17 @@ use gtk::{Application, Builder};
 #[allow(unused_imports)]
 use log::{error, info, warn};
 
+const STARTUP_MSG: &str = r#"This application is meant to be used for very specific cases, like apps built and installed manually.
+It is NOT a replacement for `apt`, `pacman` or any other package manager. In fact, it can cause problems if you use this app to uninstall
+apps installed through a package manager.
+
+You are assumed to be responsible enough to understand that DATA WILL BE LOST FOREVER and you CANNOT reverse deletion. Please make sure
+you do not just blindly run "Delete app" on everything to free space.
+
+Final warning: Make sure you know what you are doing. The creator is not liable or responsible in any way if something doesn't go the way you
+expected, you accidentally uninstall something you shouldn't or dragons jump out of your computer and try to bite you. Again, you should probably not run this
+application if your package manager can uninstall the app you want to uninstall."#;
+
 fn main() -> glib::ExitCode {
     if std::env::var("RUST_LOG").is_err() {
         std::env::set_var("RUST_LOG", "info");
@@ -41,24 +52,13 @@ fn main() -> glib::ExitCode {
         .build();
 
     app.connect_activate(|app| {
-        let warningmsg = r#"This application is meant to be used for very specific cases, like apps built and installed manually.
-        It is NOT a replacement for `apt`, `pacman` or any other package manager. In fact, it can cause problems if you use this app to uninstall
-        apps installed through a package manager.
-        
-        You are assumed to be responsible enough to understand that DATA WILL BE LOST FOREVER and you CANNOT reverse deletion. Please make sure
-        you do not just blindly run "Delete app" on everything to free space.
-        
-        Final warning: Make sure you know what you are doing. The creator is not liable or responsible in any way if something doesn't go the way you
-        expected, you accidentally uninstall something you shouldn't or dragons jump out of your computer and try to bite you. Again, you should probably not run this
-        application if your package manager can uninstall the app you want to uninstall."#;
-
         let builder = Builder::from_string(include_str!("../ui/window.xml"));
         let apps = desktop::load_entries();
         let window: gtk::ApplicationWindow = builder.object("mainwindow").unwrap_or_else(|| {
             error!("Could not retrieve window object from UI file");
             std::process::exit(-1);
         });
-        Dialog::new("Warning", warningmsg, &window).show();
+        Dialog::new("Warning", STARTUP_MSG, &window).show();
 
         let applist: ListBox = builder.object("applist").unwrap_or_else(|| {
             warn!("Failed to retrieve a UI element from the descriptor file");
@@ -73,6 +73,7 @@ fn main() -> glib::ExitCode {
             });
 
         for a in apps {
+            
             let button = a.create_button_from_entry();
             let appview = appview.clone();
             button.connect_clicked(move |_| {
