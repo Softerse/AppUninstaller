@@ -89,6 +89,7 @@ impl DesktopEntry {
             )
             .unwrap_or("0".to_string())
         )));
+        let openbtn = Button::with_label("Open externally");
         let dltapp = Button::builder()
             .label("Delete Application (!)")
             .css_classes(vec!["destructive-action"])
@@ -106,6 +107,23 @@ impl DesktopEntry {
         let name = self.name.clone();
         let exec = PathBuf::from(self.exec.clone());
         let entry = PathBuf::from(self.full_path.clone());
+        let entry_c = entry.clone();
+
+        openbtn.connect_clicked(move |_| {
+            open::that_detached(&format!("file://{}", entry_c.to_string_lossy())).unwrap_or_else(
+                |e| {
+                    Dialog::new_without_parent(
+                        "Error!",
+                        &format!(
+                            "Could not open file '{}': {}.",
+                            entry_c.display(),
+                            e.to_string()
+                        ),
+                    );
+                    log::error!("Failed to open {}: {}", entry_c.display(), e.to_string())
+                },
+            )
+        });
 
         dltapp.connect_clicked(move |_|{
             let choice = GtkDialog::builder()
@@ -153,7 +171,15 @@ impl DesktopEntry {
         view.append(&desc);
         view.append(&full);
         view.append(&filesize);
-        view.append(&dltapp);
+
+        /* The brackets aren't needed here, it's just for readability. */
+        {
+            let c = gtk::Box::new(gtk::Orientation::Horizontal, 4);
+            c.append(&openbtn);
+            c.append(&dltapp);
+            view.append(&c);
+        }
+        
 
         view
     }
