@@ -179,7 +179,6 @@ impl DesktopEntry {
             c.append(&dltapp);
             view.append(&c);
         }
-        
 
         view
     }
