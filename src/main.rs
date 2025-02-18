@@ -23,7 +23,9 @@ mod purge;
 mod utils;
 
 use dialog::Dialog;
-use gtk::glib;
+use gtk::gdk::prelude::*;
+use gtk::gio::SimpleAction;
+use gtk::{glib, AboutDialog, License};
 use gtk::{prelude::*, ScrolledWindow};
 use gtk::{Application, Builder};
 #[allow(unused_imports)]
@@ -52,13 +54,35 @@ fn main() -> glib::ExitCode {
         .application_id("org.sfd.LinuxAppUninstaller")
         .build();
 
-    app.connect_activate(|app| {
+    app.connect_activate(move |app| {
         let builder = Builder::from_string(include_str!("../ui/window.xml"));
         let apps = desktop::load_entries();
         let window: gtk::ApplicationWindow = builder.object("mainwindow").unwrap_or_else(|| {
             error!("Could not retrieve window object from UI file");
             std::process::exit(-1);
         });
+
+        let prefaction = SimpleAction::new("preferences", None);
+        let quitaction = SimpleAction::new("quit", None);
+        let windowclone = window.clone();
+        let aboutaction = SimpleAction::new("about", None);
+        prefaction.connect_activate(|_, _| todo!("Slide in preferences view"));
+        quitaction.connect_activate(|_, _| std::process::exit(0));
+        aboutaction.connect_activate(move |_, _| {
+            AboutDialog::builder()
+                .authors(["Aggelos Tselios "])
+                .modal(true)
+                .transient_for(&windowclone)
+                .copyright("2025 The Linux App Uninstaller developers")
+                .license_type(License::Gpl30Only)
+                .version("0.1.0")
+                .build()
+                .present();
+        });
+        app.add_action(&prefaction);
+        app.add_action(&quitaction);
+        app.add_action(&aboutaction);
+
         Dialog::new("Warning", STARTUP_MSG, &window).show();
 
         let applist: gtk::Box = builder.object("applist").unwrap_or_else(|| {
