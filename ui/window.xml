@@ -11,7 +11,11 @@
     <child>
       <object class="GtkBox">
         <property name="orientation">vertical</property>
-        <!-- Paned Layout -->
+        <child>
+          <object class="GtkPopoverMenuBar">
+            <property name="menu-model">app_menu</property>
+          </object>
+        </child>
         <child>
           <object class="GtkPaned" id="paned">
             <property name="orientation">horizontal</property>
@@ -61,4 +65,29 @@
     </child>
 
   </object>
+
+  <menu id="app_menu">
+    <submenu>
+      <attribute name="label">File</attribute>
+      <section>
+        <item>
+          <attribute name="label">Preferences</attribute>
+          <attribute name="action">app.preferences</attribute>
+        </item>
+        <item>
+          <attribute name="label">Quit</attribute>
+          <attribute name="action">app.quit</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu>
+      <attribute name="label">Help</attribute>
+      <section>
+        <item>
+          <attribute name="label">About App Uninstaller...</attribute>
+          <attribute name="action">app.about</attribute>
+        </item>
+      </section>
+    </submenu>
+  </menu>
 </interface>
