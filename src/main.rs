@@ -19,6 +19,7 @@
 mod desktop;
 mod dialog;
 mod error;
+mod preferences;
 mod purge;
 mod utils;
 
@@ -30,6 +31,7 @@ use gtk::{prelude::*, ScrolledWindow};
 use gtk::{Application, Builder};
 #[allow(unused_imports)]
 use log::{error, info, warn};
+use preferences::Preferences;
 use utils::{isolate_exec, omit_dir_from_cmd};
 
 const STARTUP_MSG: &str = r#"This application is meant to be used for very specific cases, like apps built and installed manually.
@@ -55,18 +57,21 @@ fn main() -> glib::ExitCode {
         .build();
 
     app.connect_activate(move |app| {
+        let pref = Preferences::load();
         let builder = Builder::from_string(include_str!("../ui/window.xml"));
         let apps = desktop::load_entries();
         let window: gtk::ApplicationWindow = builder.object("mainwindow").unwrap_or_else(|| {
             error!("Could not retrieve window object from UI file");
             std::process::exit(-1);
         });
+        window.set_maximized(pref.fullscreen);
 
+        
         let prefaction = SimpleAction::new("preferences", None);
         let quitaction = SimpleAction::new("quit", None);
         let windowclone = window.clone();
         let aboutaction = SimpleAction::new("about", None);
-        prefaction.connect_activate(|_, _| todo!("Slide in preferences view"));
+        
         quitaction.connect_activate(|_, _| std::process::exit(0));
         aboutaction.connect_activate(move |_, _| {
             AboutDialog::builder()
@@ -83,7 +88,13 @@ fn main() -> glib::ExitCode {
         app.add_action(&quitaction);
         app.add_action(&aboutaction);
 
-        Dialog::new("Warning", STARTUP_MSG, &window).show();
+        if pref.startupdlg {
+            Dialog::new("Warning", STARTUP_MSG, &window).show();
+        }
+
+        prefaction.connect_activate(move |_, _| {
+            pref.window().present();
+        });
 
         let applist: gtk::Box = builder.object("applist").unwrap_or_else(|| {
             warn!("Failed to retrieve a UI element from the descriptor file");
