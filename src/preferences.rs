@@ -2,7 +2,7 @@ use gtk::{prelude::*, Button, CheckButton, Label, Orientation, Window};
 use std::cell::RefCell;
 use std::rc::Rc;
 
-#[derive(Default, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct Preferences {
     pub startupdlg: bool,
     pub fullscreen: bool,
@@ -72,5 +72,14 @@ impl Preferences {
         window.set_child(Some(&cnt));
 
         window
+    }
+}
+
+impl Default for Preferences {
+    fn default() -> Self {
+        Self {
+            startupdlg: true,
+            fullscreen: false,
+        }
     }
 }
