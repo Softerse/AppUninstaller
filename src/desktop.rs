@@ -169,6 +169,7 @@ impl DesktopEntry {
         });
 
         let name = self.name.clone();
+        #[cfg(debug_assertions)]
         opendata.connect_clicked(move |b|{
             let dir_g = AppPurgeProcess::new(name.clone(), true).find_app_files_global();
             let dir_l = AppPurgeProcess::new(name.clone(), true).find_app_files_home();
