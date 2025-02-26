@@ -16,6 +16,7 @@ thiserror = "2.0"
 open = "5"
 confy = "0.6"
 serde = { version = "1.0", features = [ "serde_derive" ] }
+rayon = "1.10"
 
 [profile.release]
 lto = "fat"
