@@ -142,11 +142,12 @@ impl DesktopEntry {
 
             let exec = exec.clone();
             let entry = entry.clone();
+            let name = name.clone();
             choice.connect_response(move |choice, response|{
                 choice.close();
                 match response {
                     ResponseType::Accept => {
-                        let delete_result = AppPurger::purge_app(exec.clone(), entry.clone());
+                        let delete_result = AppPurger::purge_app(name.clone(), exec.clone(), entry.clone());
                         if delete_result.is_ok() {
                             Dialog::new_without_parent("Success", "Application deleted successfully. Any residual files (eg. in /usr/share/) must be deleted manually.").show();
                         } else {
