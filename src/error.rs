@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // This file is part of Linux Program Uninstaller.
 ///
 /// Linux Uninstaller - A fast, elegant program uninstaller for Linux
@@ -25,6 +26,5 @@ pub enum Error {
     #[error("Couldn't delete a file for this app ({0})")]
     CouldNotDelete(String),
     #[error("Unknown error")]
-    #[allow(dead_code)]
     UnknownError,
 }
