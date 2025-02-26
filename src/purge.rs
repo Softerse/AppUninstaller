@@ -65,23 +65,26 @@ impl AppPurger {
     }
 
     pub fn purge_app(appname: String, exec: PathBuf, entry: PathBuf) {
-        let exec = exec.to_string_lossy().to_string();
-        if let Some(ex) = Self::find_exec(exec.clone()) {
-            match std::fs::remove_file(&ex) {
-                Err(e) => error!("Failed to remove {}: {}", ex.display(), e.to_string()),
-                Ok(()) => {
-                    info!("Deleted executable {}", ex.display());
-                    match std::fs::remove_file(&entry) {
-                        Err(e) => {
-                            error!("Failed to remove {}: {}", entry.display(), e.to_string());
-                        }
-                        Ok(()) => {
-                            info!("Deleted desktop entry {}", entry.display());
-                            AppPurgeProcess::new(appname).try_purge();
-                        }
-                    }
-                }
+        let exec_path = exec.to_string_lossy();
+
+        if let Some(exec_file) = Self::find_exec(exec_path.to_string()) {
+            if let Err(e) = std::fs::remove_file(&exec_file) {
+                error!(
+                    "Failed to remove {}: {}",
+                    exec_file.display(),
+                    e.to_string()
+                );
+                return;
             }
+            info!("Deleted executable {}", exec_file.display());
+
+            if let Err(e) = std::fs::remove_file(&entry) {
+                error!("Failed to remove {}: {}", entry.display(), e.to_string());
+                return;
+            }
+            info!("Deleted desktop entry {}", entry.display());
+
+            AppPurgeProcess::new(appname).try_purge();
         }
     }
 }
