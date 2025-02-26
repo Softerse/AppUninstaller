@@ -125,7 +125,7 @@ impl DesktopEntry {
             )
         });
 
-        dltapp.connect_clicked(move |_|{
+        dltapp.connect_clicked(move |_| {
             let choice = GtkDialog::builder()
                 .icon_name("question")
                 .title("Confirm action")
@@ -135,27 +135,25 @@ impl DesktopEntry {
             let content = choice.content_area();
             content.set_halign(Align::Center);
             content.set_valign(Align::Center);
-            content.append(&Label::new(Some("Are you sure you wish to delete this application?")));
+            content.append(&Label::new(Some(
+                "Are you sure you wish to delete this application?",
+            )));
             choice.add_button("No, close", ResponseType::Close);
-            choice.add_button(&format!("Yes, delete {}", name), ResponseType::Accept).set_css_classes(&[ "destructive-action" ]);
+            choice
+                .add_button(&format!("Yes, delete {}", name), ResponseType::Accept)
+                .set_css_classes(&["destructive-action"]);
             choice.set_default_response(ResponseType::Close);
 
             let exec = exec.clone();
             let entry = entry.clone();
             let name = name.clone();
-            choice.connect_response(move |choice, response|{
+            choice.connect_response(move |choice, response| {
                 choice.close();
                 match response {
                     ResponseType::Accept => {
-                        let delete_result = AppPurger::purge_app(name.clone(), exec.clone(), entry.clone());
-                        if delete_result.is_ok() {
-                            Dialog::new_without_parent("Success", "Application deleted successfully. Any residual files (eg. in /usr/share/) must be deleted manually.").show();
-                        } else {
-                            let e = delete_result.unwrap_err();
-                            Dialog::new_without_parent("Error!", &format!("Could not delete this application.\nThe reported error was: '{}'", e.to_string())).show();
-                        }
+                        AppPurger::purge_app(name.clone(), exec.clone(), entry.clone())
                     }
-                    _ => ()
+                    _ => (),
                 }
             });
 

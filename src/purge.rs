@@ -19,7 +19,7 @@ use crate::dialog::Dialog;
 ///  
 /// You should have received a copy of the GNU General Public License  
 /// along with this program.  If not, see <https://www.gnu.org/licenses/>.
-use crate::error::Error;
+///
 use crate::utils::isolate_exec;
 use gtk::prelude::BoxExt;
 use gtk::prelude::DialogExt;
@@ -64,30 +64,24 @@ impl AppPurger {
         }
     }
 
-    pub fn purge_app(appname: String, exec: PathBuf, entry: PathBuf) -> Result<(), Error> {
+    pub fn purge_app(appname: String, exec: PathBuf, entry: PathBuf) {
         let exec = exec.to_string_lossy().to_string();
-        match Self::find_exec(exec.clone()) {
-            None => Err(Error::ExecNotFound), // show an error dialog here
-            Some(ex) => match std::fs::remove_file(&ex) {
-                Err(e) => {
-                    error!("Failed to remove {}: {}", ex.display(), e.to_string());
-                    Err(Error::CouldNotDelete(String::from(ex.to_string_lossy())))
-                }
+        if let Some(ex) = Self::find_exec(exec.clone()) {
+            match std::fs::remove_file(&ex) {
+                Err(e) => error!("Failed to remove {}: {}", ex.display(), e.to_string()),
                 Ok(()) => {
                     info!("Deleted executable {}", ex.display());
                     match std::fs::remove_file(&entry) {
                         Err(e) => {
                             error!("Failed to remove {}: {}", entry.display(), e.to_string());
-                            Err(Error::CouldNotDelete(entry.to_string_lossy().to_string()))
                         }
                         Ok(()) => {
                             info!("Deleted desktop entry {}", entry.display());
                             AppPurgeProcess::new(appname).try_purge();
-                            Ok(())
                         }
                     }
                 }
-            },
+            }
         }
     }
 }
@@ -99,36 +93,36 @@ impl AppPurgeProcess {
 
     fn found_file_dialog(&self, path: PathBuf) {
         let dialog = GtkDialog::builder()
-                    .title("Delete data")
-                    .icon_name("question-symbolic")
-                    .modal(true)
-                    .margin_start(4)
-                    .margin_end(4)
-                    .margin_top(4)
-                    .margin_bottom(4)
-                    .build();
+            .title("Delete data")
+            .icon_name("question-symbolic")
+            .modal(true)
+            .margin_start(4)
+            .margin_end(4)
+            .margin_top(4)
+            .margin_bottom(4)
+            .build();
 
-                let content = dialog.content_area();
-                content.append(&Label::new(Some(&format!(
-                    "Data for this application has been detected at {}. Delete it?",
-                    path.display()
-                ))));
-                dialog.add_button("Yes, delete", ResponseType::Accept);
-                dialog.add_button("No, leave it", ResponseType::Cancel);
-                dialog.set_default_response(ResponseType::Cancel);
+        let content = dialog.content_area();
+        content.append(&Label::new(Some(&format!(
+            "Data for this application has been detected at {}. Delete it?",
+            path.display()
+        ))));
+        dialog.add_button("Yes, delete", ResponseType::Accept);
+        dialog.add_button("No, leave it", ResponseType::Cancel);
+        dialog.set_default_response(ResponseType::Cancel);
 
-                dialog.connect_response(move |d, response| match response {
-                    ResponseType::Accept => {
-                        std::fs::remove_dir_all(path.clone()).unwrap_or_else(|e| {
-                            Dialog::new_without_parent(
-                                "Error",
-                                &format!("Couldn't remove directory {}: {}", path.display(), e),
-                            );
-                        });
-                        d.close();
-                    }
-                    _ => d.close(),
+        dialog.connect_response(move |d, response| match response {
+            ResponseType::Accept => {
+                std::fs::remove_dir_all(path.clone()).unwrap_or_else(|e| {
+                    Dialog::new_without_parent(
+                        "Error",
+                        &format!("Couldn't remove directory {}: {}", path.display(), e),
+                    );
                 });
+                d.close();
+            }
+            _ => d.close(),
+        });
     }
 
     fn find_app_files_global(&self) {
