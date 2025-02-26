@@ -66,12 +66,11 @@ fn main() -> glib::ExitCode {
         });
         window.set_maximized(pref.fullscreen);
 
-        
         let prefaction = SimpleAction::new("preferences", None);
         let quitaction = SimpleAction::new("quit", None);
         let windowclone = window.clone();
         let aboutaction = SimpleAction::new("about", None);
-        
+
         quitaction.connect_activate(|_, _| std::process::exit(0));
         aboutaction.connect_activate(move |_, _| {
             AboutDialog::builder()
