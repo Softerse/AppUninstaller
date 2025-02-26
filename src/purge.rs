@@ -1,3 +1,6 @@
+#![allow(deprecated)]
+
+use crate::dialog::Dialog;
 // This file is part of Linux Program Uninstaller.
 ///
 /// Linux Uninstaller - A fast, elegant program uninstaller for Linux
@@ -18,12 +21,36 @@
 /// along with this program.  If not, see <https://www.gnu.org/licenses/>.
 use crate::error::Error;
 use crate::utils::isolate_exec;
+use gtk::prelude::BoxExt;
+use gtk::prelude::DialogExt;
+use gtk::prelude::GtkWindowExt;
+use gtk::Dialog as GtkDialog;
+use gtk::Label;
+use gtk::ResponseType;
 use log::error;
 use log::info;
 use std::path::PathBuf;
 
+const COMMON_DATA_DIRS: [&str; 6] = [
+    "/usr/local/share/",
+    "/usr/local/",
+    "/usr/share/",
+    "/var/lib/",
+    "/opt/",
+    "/etc/",
+];
+
+const LOCAL_DATA_DIRS: [&str; 3] = [
+    "/.local/share/",
+    "/.", // Some apps save data under $HOME/.<app name>
+    "/.var",
+];
+
 /* Does all the purging for us */
 pub struct AppPurger;
+struct AppPurgeProcess {
+    app: String,
+}
 
 impl AppPurger {
     #[inline]
@@ -37,7 +64,7 @@ impl AppPurger {
         }
     }
 
-    pub fn purge_app(exec: PathBuf, entry: PathBuf) -> Result<(), Error> {
+    pub fn purge_app(appname: String, exec: PathBuf, entry: PathBuf) -> Result<(), Error> {
         let exec = exec.to_string_lossy().to_string();
         match Self::find_exec(exec.clone()) {
             None => Err(Error::ExecNotFound), // show an error dialog here
@@ -55,11 +82,85 @@ impl AppPurger {
                         }
                         Ok(()) => {
                             info!("Deleted desktop entry {}", entry.display());
+                            AppPurgeProcess::new(appname).try_purge();
                             Ok(())
                         }
                     }
                 }
             },
         }
+    }
+}
+
+impl AppPurgeProcess {
+    pub fn new(app: String) -> Self {
+        Self { app }
+    }
+
+    fn found_file_dialog(&self, path: PathBuf) {
+        let dialog = GtkDialog::builder()
+                    .title("Delete data")
+                    .icon_name("question-symbolic")
+                    .modal(true)
+                    .margin_start(4)
+                    .margin_end(4)
+                    .margin_top(4)
+                    .margin_bottom(4)
+                    .build();
+
+                let content = dialog.content_area();
+                content.append(&Label::new(Some(&format!(
+                    "Data for this application has been detected at {}. Delete it?",
+                    path.display()
+                ))));
+                dialog.add_button("Yes, delete", ResponseType::Accept);
+                dialog.add_button("No, leave it", ResponseType::Cancel);
+                dialog.set_default_response(ResponseType::Cancel);
+
+                dialog.connect_response(move |d, response| match response {
+                    ResponseType::Accept => {
+                        std::fs::remove_dir_all(path.clone()).unwrap_or_else(|e| {
+                            Dialog::new_without_parent(
+                                "Error",
+                                &format!("Couldn't remove directory {}: {}", path.display(), e),
+                            );
+                        });
+                        d.close();
+                    }
+                    _ => d.close(),
+                });
+    }
+
+    fn find_app_files_global(&self) {
+        for dir in COMMON_DATA_DIRS {
+            let path = PathBuf::from(dir).join(self.app.to_lowercase());
+            if path.exists() {
+                self.found_file_dialog(path);
+            }
+        }
+    }
+
+    fn find_app_files_home(&self) {
+        /* We can allow this function even though its deprecated because this app is not designed for Windows. */
+        #[allow(deprecated)]
+        let homedir = std::env::home_dir().unwrap_or_else(||{
+            log::error!("Couldn't find the home directory for the user. Crashing because no substitute can be used");
+            std::process::abort()
+        });
+
+        for dir in LOCAL_DATA_DIRS {
+            let path = homedir.join(dir).join(self.app.clone());
+            if path.exists() {
+                self.found_file_dialog(path);
+            }
+        }
+    }
+
+    #[inline]
+    pub fn try_purge(self) {
+        log::info!("Trying global common paths");
+        self.find_app_files_global();
+        log::info!("Trying local common paths");
+        self.find_app_files_home();
     }
 }
