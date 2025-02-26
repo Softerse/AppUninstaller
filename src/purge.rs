@@ -40,16 +40,18 @@ const COMMON_DATA_DIRS: [&str; 6] = [
     "/etc/",
 ];
 
-const LOCAL_DATA_DIRS: [&str; 3] = [
+const LOCAL_DATA_DIRS: [&str; 4] = [
     "/.local/share/",
     "/.", // Some apps save data under $HOME/.<app name>
     "/.var",
+    "/.config",
 ];
 
 /* Does all the purging for us */
 pub struct AppPurger;
-struct AppPurgeProcess {
+pub struct AppPurgeProcess {
     app: String,
+    headless: bool,
 }
 
 impl AppPurger {
@@ -74,27 +76,27 @@ impl AppPurger {
                     exec_file.display(),
                     e.to_string()
                 );
-                return;
             }
-            info!("Deleted executable {}", exec_file.display());
-
-            if let Err(e) = std::fs::remove_file(&entry) {
-                error!("Failed to remove {}: {}", entry.display(), e.to_string());
-                return;
-            }
-            info!("Deleted desktop entry {}", entry.display());
-
-            AppPurgeProcess::new(appname).try_purge();
         }
+
+        if let Err(e) = std::fs::remove_file(&entry) {
+            error!("Failed to remove {}: {}", entry.display(), e.to_string());
+        } else {
+            info!("Deleted desktop entry {}", entry.display());
+        }
+
+        AppPurgeProcess::new(appname, false).try_purge();
     }
 }
 
 impl AppPurgeProcess {
-    pub fn new(app: String) -> Self {
-        Self { app }
+    pub fn new(app: String, headless: bool) -> Self {
+        Self { app, headless }
     }
 
     fn found_file_dialog(&self, path: PathBuf) {
+        if self.headless { return }
+        log::info!("Found possible path at {}", path.display());
         let dialog = GtkDialog::builder()
             .title("Delete data")
             .icon_name("question-symbolic")
@@ -116,28 +118,36 @@ impl AppPurgeProcess {
 
         dialog.connect_response(move |d, response| match response {
             ResponseType::Accept => {
-                std::fs::remove_dir_all(path.clone()).unwrap_or_else(|e| {
+                let result = std::fs::remove_dir_all(path.clone());
+                if result.is_ok() {
+                    info!("Deleted directory {}", path.display());
+                } else {
+                    let e = result.unwrap_err();
                     Dialog::new_without_parent(
                         "Error",
                         &format!("Couldn't remove directory {}: {}", path.display(), e),
                     );
-                });
+                }
                 d.close();
             }
             _ => d.close(),
         });
     }
 
-    fn find_app_files_global(&self) {
+    pub fn find_app_files_global(&self) -> Vec<PathBuf> {
+        let mut paths = Vec::new();
         for dir in COMMON_DATA_DIRS {
             let path = PathBuf::from(dir).join(self.app.to_lowercase());
             if path.exists() {
+                paths.push(path.clone());
                 self.found_file_dialog(path);
             }
         }
+        paths
     }
 
-    fn find_app_files_home(&self) {
+    pub fn find_app_files_home(&self) -> Vec<PathBuf> {
+        let mut paths = Vec::new();
         /* We can allow this function even though its deprecated because this app is not designed for Windows. */
         #[allow(deprecated)]
         let homedir = std::env::home_dir().unwrap_or_else(||{
@@ -148,9 +158,11 @@ impl AppPurgeProcess {
         for dir in LOCAL_DATA_DIRS {
             let path = homedir.join(dir).join(self.app.clone());
             if path.exists() {
+                paths.push(path.clone());
                 self.found_file_dialog(path);
             }
         }
+        paths
     }
 
     #[inline]
