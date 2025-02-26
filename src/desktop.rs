@@ -19,15 +19,17 @@
 /// You should have received a copy of the GNU General Public License  
 /// along with this program.  If not, see <https://www.gnu.org/licenses/>.
 use crate::dialog::Dialog;
-use crate::purge::AppPurger;
+use crate::purge::{AppPurgeProcess, AppPurger};
 use crate::utils;
 use freedesktop_desktop_entry::DesktopEntry as FdoDesktopEntry;
 use gtk::{prelude::*, Align, Dialog as GtkDialog, ResponseType};
 use gtk::{Button, Image, Label};
 use log::error;
+use rayon::prelude::*;
 use std::borrow::Cow;
 use std::fs;
 use std::path::PathBuf;
+use std::sync::Mutex;
 
 pub struct DesktopEntry {
     pub name: String,
@@ -93,6 +95,12 @@ impl DesktopEntry {
         let dltapp = Button::builder()
             .label("Delete Application (!)")
             .css_classes(vec!["destructive-action"])
+            .build();
+        #[cfg(debug_assertions)]
+        let opendata = Button::builder()
+            .label("Open Data Folder(s)")
+            .tooltip_text(r#"Only available on debug builds. Opens the directory that AppUninstaller thinks belongs to this application. Useful to see how accurate is the internal algorithm for detection.
+            Note that if many directories are found only the last one detected will be used."#)
             .build();
 
         /* Apparently we can't just use markup directly, we need to set it manually here. */
@@ -160,6 +168,29 @@ impl DesktopEntry {
             choice.show();
         });
 
+        let name = self.name.clone();
+        opendata.connect_clicked(move |b|{
+            let dir_g = AppPurgeProcess::new(name.clone(), true).find_app_files_global();
+            let dir_l = AppPurgeProcess::new(name.clone(), true).find_app_files_home();
+            if !dir_g.is_empty() {
+                let dir = dir_g.last().unwrap();
+                open::that_detached(dir).unwrap_or_else(|e|{
+                    log::error!("Couldn't open directory {}: {}", dir.display(), e.to_string());
+                });
+            }
+
+            if !dir_l.is_empty() {
+                let dir = dir_l.last().unwrap();
+                open::that_detached(dir).unwrap_or_else(|e|{
+                    log::error!("Couldn't open directory {}: {}", dir.display(), e.to_string());
+                });
+            }
+
+            if dir_g.is_empty() && dir_l.is_empty() {
+                b.set_label("No directories were found in the system.");
+            }
+        });
+
         view.set_margin_start(16);
         view.set_margin_end(16);
         view.set_margin_top(16);
@@ -175,6 +206,8 @@ impl DesktopEntry {
         {
             let c = gtk::Box::new(gtk::Orientation::Horizontal, 4);
             c.append(&openbtn);
+            #[cfg(debug_assertions)]
+            c.append(&opendata);
             c.append(&dltapp);
             view.append(&c);
         }
@@ -184,7 +217,6 @@ impl DesktopEntry {
 }
 
 pub fn load_entries() -> Vec<DesktopEntry> {
-    let mut entries = Vec::new();
     let entry_dirs = [
         format!(
             "{}/.local/share/applications/",
@@ -194,36 +226,44 @@ pub fn load_entries() -> Vec<DesktopEntry> {
         "/usr/local/share/applications".to_string(),
     ];
 
-    for dir in entry_dirs.iter() {
+    let entries = Mutex::new(Vec::new()); // Protects access to entries
+
+    // Process directories in parallel
+    entry_dirs.par_iter().for_each(|dir| {
         if let Ok(entries_iter) = fs::read_dir(dir) {
-            for entry in entries_iter.flatten() {
-                if entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false)
-                    || !entry.file_name().to_string_lossy().ends_with(".desktop")
-                {
-                    continue;
-                }
+            entries_iter
+                .flatten()
+                .filter(|entry| {
+                    // Filter for only .desktop files
+                    entry.file_type().map(|ft| ft.is_file()).unwrap_or(false)
+                        && entry.file_name().to_string_lossy().ends_with(".desktop")
+                })
+                .for_each(|entry| {
+                    let path = entry.path();
+                    if let Ok(fdo_entry) = FdoDesktopEntry::from_path(&path, None::<&[String]>) {
+                        let exec = fdo_entry.exec().unwrap_or_default();
+                        let name = fdo_entry.name(&["en_US"]).unwrap_or_default();
+                        let icon_path = fdo_entry.icon().unwrap_or_default();
+                        let description = fdo_entry
+                            .comment(&["en_US"])
+                            .unwrap_or(Cow::Borrowed("None"));
 
-                let path = entry.path();
-                if let Ok(fdo_entry) = FdoDesktopEntry::from_path(&path, None::<&[String]>) {
-                    let exec = fdo_entry.exec().unwrap_or_default();
-                    let name = fdo_entry.name(&["en_US"]).unwrap_or_default();
-                    let icon_path = fdo_entry.icon().unwrap_or_default();
-                    let description = fdo_entry
-                        .comment(&["en_US"])
-                        .unwrap_or(Cow::Borrowed("None"));
-
-                    entries.push(DesktopEntry::new(
-                        name.to_string(),
-                        exec.to_string(),
-                        Some(icon_path.to_string()),
-                        description.to_string(),
-                        path.to_string_lossy().to_string(),
-                    ));
-                }
-            }
+                        // Lock and collect entries safely
+                        let mut entries = entries.lock().unwrap();
+                        entries.push(DesktopEntry::new(
+                            name.to_string(),
+                            exec.to_string(),
+                            Some(icon_path.to_string()),
+                            description.to_string(),
+                            path.to_string_lossy().to_string(),
+                        ));
+                    }
+                });
         } else {
             error!("Error reading directory: {}", dir);
         }
-    }
-    entries
+    });
+
+    // Return the collected entries after all parallel work is done
+    entries.into_inner().unwrap()
 }
