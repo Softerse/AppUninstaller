@@ -15,7 +15,7 @@ impl Preferences {
     }
 
     pub fn save(&self) {
-        confy::store("LinuxAppUninstaller", None, self).unwrap_or_else(|e|{
+        confy::store("LinuxAppUninstaller", None, self).unwrap_or_else(|e| {
             log::error!("Failed to save new settings on the disk: {}", e.to_string());
         })
     }
@@ -54,12 +54,12 @@ impl Preferences {
 
         {
             let prefs = Rc::clone(&prefs);
-            savebtn.connect_clicked(move |_|{
+            savebtn.connect_clicked(move |_| {
                 prefs.borrow().save();
                 log::info!("Saved new settings!");
             });
         }
-        
+
         cnt.set_margin_start(6);
         cnt.set_margin_end(6);
         cnt.set_margin_top(6);
@@ -67,7 +67,9 @@ impl Preferences {
 
         cnt.append(&startupdlg);
         cnt.append(&fullscreen);
-        cnt.append(&Label::new(Some("You must restart the application to see the changes.")));
+        cnt.append(&Label::new(Some(
+            "You must restart the application to see the changes.",
+        )));
         cnt.append(&savebtn);
         window.set_child(Some(&cnt));
 
