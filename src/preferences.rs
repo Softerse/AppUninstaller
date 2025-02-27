@@ -9,9 +9,9 @@ pub struct Preferences {
 }
 
 impl Preferences {
+    #[inline]
     pub fn load() -> Self {
-        let config = confy::load::<Self>("LinuxAppUninstaller", None).unwrap();
-        config
+        confy::load::<Self>("LinuxAppUninstaller", None).unwrap()
     }
 
     pub fn save(&self) {
