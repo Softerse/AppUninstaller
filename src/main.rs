@@ -60,7 +60,7 @@ fn main() -> glib::ExitCode {
     app.connect_activate(move |app| {
         let pref = Preferences::load();
         let builder = Builder::from_string(include_str!("../ui/window.xml"));
-        let apps = desktop::load_entries();
+        let mut apps = desktop::load_entries();
         let window: gtk::ApplicationWindow = builder.object("mainwindow").unwrap_or_else(|| {
             error!("Could not retrieve window object from UI file");
             std::process::exit(-1);
@@ -108,6 +108,9 @@ fn main() -> glib::ExitCode {
                 std::process::exit(-1);
             });
 
+        apps.sort_by(|a, b|{
+            a.name.cmp(&b.name)
+        });
         for a in apps {
             let blacklisted_execs = [
                 "flatpak",
