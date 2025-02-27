@@ -27,7 +27,7 @@ use gtk::{Button, Image, Label};
 use log::error;
 use rayon::prelude::*;
 use std::borrow::Cow;
-use std::fs;
+use std::fs::{self, OpenOptions};
 use std::path::PathBuf;
 use std::sync::Mutex;
 
@@ -128,6 +128,8 @@ impl DesktopEntry {
                 },
             )
         });
+        openbtn.set_tooltip_text(Some("Opens the desktop entry using your system's preconfigured application. Useful if you want to modify something in it."));
+        openbtn.set_sensitive(OpenOptions::new().read(true).open(&self.full_path).is_ok());
 
         dltapp.connect_clicked(move |_| {
             let choice = GtkDialog::builder()
@@ -159,6 +161,14 @@ impl DesktopEntry {
             });
 
             choice.show();
+        });
+
+        let deletable = OpenOptions::new().write(true).open(&self.exec).is_ok();
+        dltapp.set_sensitive(deletable);
+        dltapp.set_tooltip_text(if deletable {
+            None
+        } else {
+            Some("You don't have the required permissions to delete this app. Use administrative privileges to uninstall applications installed in system paths.")
         });
 
         let name = self.name.clone();
