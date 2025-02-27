@@ -31,15 +31,20 @@ use log::error;
 use log::info;
 use std::path::PathBuf;
 
-const COMMON_DATA_DIRS: [&str; 6] = [
+/* Format: A variable of this array + the app's name in lowercase gives us a possible config dir which we test later on */
+const COMMON_DATA_DIRS: [&str; 9] = [
     "/usr/local/share/",
     "/usr/local/",
     "/usr/share/",
     "/var/lib/",
+    "/var/local",
+    "/var/opt",
+    "/lib",
     "/opt/",
     "/etc/",
 ];
 
+/* Format: $HOME + A variable of this array + the app's name in lowercase gives us a possible config dir which we test later on */
 const LOCAL_DATA_DIRS: [&str; 4] = [
     "/.local/share/",
     "/.", // Some apps save data under $HOME/.<app name>
@@ -95,7 +100,9 @@ impl AppPurgeProcess {
     }
 
     fn found_file_dialog(&self, path: PathBuf) {
-        if self.headless { return }
+        if self.headless {
+            return;
+        }
         log::info!("Found possible path at {}", path.display());
         let dialog = GtkDialog::builder()
             .title("Delete data")

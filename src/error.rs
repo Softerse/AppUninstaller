@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+#![allow(dead_code, clippy::enum_variant_names)]
 // This file is part of Linux Program Uninstaller.
 ///
 /// Linux Uninstaller - A fast, elegant program uninstaller for Linux

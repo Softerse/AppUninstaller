@@ -1,3 +1,4 @@
+#![warn(clippy::all)]
 // This file is part of Linux Program Uninstaller.
 ///
 /// Linux Uninstaller - A fast, elegant program uninstaller for Linux

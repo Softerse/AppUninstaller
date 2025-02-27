@@ -118,17 +118,13 @@ impl DesktopEntry {
         let entry_c = entry.clone();
 
         openbtn.connect_clicked(move |_| {
-            open::that_detached(&format!("file://{}", entry_c.to_string_lossy())).unwrap_or_else(
+            open::that_detached(format!("file://{}", entry_c.to_string_lossy())).unwrap_or_else(
                 |e| {
                     Dialog::new_without_parent(
                         "Error!",
-                        &format!(
-                            "Could not open file '{}': {}.",
-                            entry_c.display(),
-                            e.to_string()
-                        ),
+                        &format!("Could not open file '{}': {}.", entry_c.display(), e),
                     );
-                    log::error!("Failed to open {}: {}", entry_c.display(), e.to_string())
+                    log::error!("Failed to open {}: {}", entry_c.display(), e)
                 },
             )
         });
@@ -157,11 +153,8 @@ impl DesktopEntry {
             let name = name.clone();
             choice.connect_response(move |choice, response| {
                 choice.close();
-                match response {
-                    ResponseType::Accept => {
-                        AppPurger::purge_app(name.clone(), exec.clone(), entry.clone())
-                    }
-                    _ => (),
+                if response == ResponseType::Accept {
+                    AppPurger::purge_app(name.clone(), exec.clone(), entry.clone())
                 }
             });
 
@@ -170,20 +163,28 @@ impl DesktopEntry {
 
         let name = self.name.clone();
         #[cfg(debug_assertions)]
-        opendata.connect_clicked(move |b|{
+        opendata.connect_clicked(move |b| {
             let dir_g = AppPurgeProcess::new(name.clone(), true).find_app_files_global();
             let dir_l = AppPurgeProcess::new(name.clone(), true).find_app_files_home();
             if !dir_g.is_empty() {
                 let dir = dir_g.last().unwrap();
-                open::that_detached(dir).unwrap_or_else(|e|{
-                    log::error!("Couldn't open directory {}: {}", dir.display(), e.to_string());
+                open::that_detached(dir).unwrap_or_else(|e| {
+                    log::error!(
+                        "Couldn't open directory {}: {}",
+                        dir.display(),
+                        e.to_string()
+                    );
                 });
             }
 
             if !dir_l.is_empty() {
                 let dir = dir_l.last().unwrap();
-                open::that_detached(dir).unwrap_or_else(|e|{
-                    log::error!("Couldn't open directory {}: {}", dir.display(), e.to_string());
+                open::that_detached(dir).unwrap_or_else(|e| {
+                    log::error!(
+                        "Couldn't open directory {}: {}",
+                        dir.display(),
+                        e.to_string()
+                    );
                 });
             }
 
