@@ -25,9 +25,10 @@ mod purge;
 mod utils;
 
 use dialog::Dialog;
-use gtk::gdk::prelude::*;
+use gtk::gdk::{prelude::*, Display};
 use gtk::gio::SimpleAction;
-use gtk::{glib, AboutDialog, License};
+#[allow(deprecated)]
+use gtk::{glib, AboutDialog, CssProvider, License};
 use gtk::{prelude::*, ScrolledWindow};
 use gtk::{Application, Builder};
 #[allow(unused_imports)]
@@ -60,11 +61,28 @@ fn main() -> glib::ExitCode {
     app.connect_activate(move |app| {
         let pref = Preferences::load();
         let builder = Builder::from_string(include_str!("../ui/window.xml"));
+        let provider = CssProvider::new();
+        provider.load_from_data(include_str!("../ui/style.css"));
+        #[allow(deprecated)]
+        gtk::StyleContext::add_provider_for_display(
+            &Display::default().unwrap(),
+            &provider,
+            gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
+        );
         let mut apps = desktop::load_entries();
         let window: gtk::ApplicationWindow = builder.object("mainwindow").unwrap_or_else(|| {
             error!("Could not retrieve window object from UI file");
             std::process::exit(-1);
         });
+        unsafe {
+            if libc::getuid() == 0 {
+                warn!("This program should not be run as root");
+                let warning = builder.object::<gtk::Box>("warn-root").unwrap();
+
+                warning.set_css_classes(&["warn-root"]);
+                warning.set_visible(true);
+            }
+        }
         window.set_maximized(pref.fullscreen);
 
         let prefaction = SimpleAction::new("preferences", None);
@@ -108,9 +126,7 @@ fn main() -> glib::ExitCode {
                 std::process::exit(-1);
             });
 
-        apps.sort_by(|a, b|{
-            a.name.cmp(&b.name)
-        });
+        apps.sort_by(|a, b| a.name.cmp(&b.name));
         for a in apps {
             let blacklisted_execs = [
                 "flatpak",
