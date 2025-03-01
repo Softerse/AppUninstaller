@@ -77,10 +77,7 @@ fn main() -> glib::ExitCode {
         unsafe {
             if libc::getuid() == 0 {
                 warn!("This program should not be run as root");
-                let warning = builder.object::<gtk::Box>("warn-root").unwrap();
-
-                warning.set_css_classes(&["warn-root"]);
-                warning.set_visible(true);
+                builder.object::<gtk::Box>("warn-root").unwrap().set_visible(true);
             }
         }
         window.set_maximized(pref.fullscreen);

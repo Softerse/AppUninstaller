@@ -40,7 +40,7 @@
 						<child>
 							<object class="GtkBox" id="rightpane">
 								<property name="orientation">vertical</property>
-                <child>
+                				<child>
 									<object class="GtkBox" id="warn-root">
 										<property name="css-name">warn-root</property>
 										<property name="visible">false</property>

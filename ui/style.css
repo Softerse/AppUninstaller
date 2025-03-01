@@ -1,9 +1,11 @@
-.warn-root {
-  background-color: red;
-  padding: 10px;
+warn-root {
+  background-color: darkorange;
+  padding: 8px;
+  margin: 8px;
+  border-radius: 4px;
 }
 
-.warning-text {
-  color: red;
+warning-text {
+  color: whitesmoke;
   font-weight: bolder;
 }
