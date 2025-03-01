@@ -163,14 +163,6 @@ impl DesktopEntry {
             choice.show();
         });
 
-        let deletable = OpenOptions::new().write(true).open(&self.exec).is_ok();
-        dltapp.set_sensitive(deletable);
-        dltapp.set_tooltip_text(if deletable {
-            None
-        } else {
-            Some("You don't have the required permissions to delete this app. Use administrative privileges to uninstall applications installed in system paths.")
-        });
-
         let name = self.name.clone();
         #[cfg(debug_assertions)]
         opendata.connect_clicked(move |b| {
