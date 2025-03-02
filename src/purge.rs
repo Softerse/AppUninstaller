@@ -135,8 +135,8 @@ impl AppPurgeProcess {
                     let e = result.unwrap_err();
                     Dialog::new_without_parent(
                         "Error",
-                        &format!("Couldn't remove directory {}: {}", path.display(), e),
-                    );
+                        &format!("Couldn't remove data directory '{}': {}", path.display(), e),
+                    ).show();
                 }
                 d.close();
             }
