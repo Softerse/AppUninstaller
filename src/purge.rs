@@ -76,18 +76,20 @@ impl AppPurger {
 
         if let Some(exec_file) = Self::find_exec(exec_path.to_string()) {
             if let Err(e) = std::fs::remove_file(&exec_file) {
-                error!(
-                    "Failed to remove {}: {}",
+                Dialog::new_without_parent("Error", &format!(
+                    "Failed to delete file '{}' from the filesystem: {}",
                     exec_file.display(),
                     e.to_string()
-                );
+                ));
             }
         }
 
         if let Err(e) = std::fs::remove_file(&entry) {
-            error!("Failed to remove {}: {}", entry.display(), e.to_string());
-        } else {
-            info!("Deleted desktop entry {}", entry.display());
+            Dialog::new_without_parent("Error", &format!(
+                "Failed to delete file '{}' from the filesystem: {}",
+                &entry.display(),
+                e.to_string()
+            ));
         }
 
         AppPurgeProcess::new(appname, false).try_purge();
@@ -139,6 +141,7 @@ impl AppPurgeProcess {
             }
             _ => d.close(),
         });
+        dialog.present();
     }
 
     pub fn find_app_files_global(&self) -> Vec<PathBuf> {
