@@ -78,7 +78,7 @@ impl AppPurger {
         if let Some(exec_file) = Self::find_exec(exec_path.to_string()) {
             if let Err(e) = std::fs::remove_file(&exec_file) {
                 Dialog::new_without_parent("Error", &format!(
-                    "Failed to delete file '{}' from the filesystem: {}",
+                    "Failed to delete file '{}' from the filesystem:\n{}",
                     exec_file.display(),
                     e.to_string()
                 )).show();
@@ -87,7 +87,7 @@ impl AppPurger {
 
         if let Err(e) = std::fs::remove_file(&entry) {
             Dialog::new_without_parent("Error", &format!(
-                "Failed to delete file '{}' from the filesystem: {}",
+                "Failed to delete file '{}' from the filesystem:\n{}",
                 &entry.display(),
                 e.to_string()
             )).show();
