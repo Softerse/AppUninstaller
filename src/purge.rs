@@ -72,6 +72,7 @@ impl AppPurger {
     }
 
     pub fn purge_app(appname: String, exec: PathBuf, entry: PathBuf) {
+        log::info!("Attempting to remove data of application \"{}\".", &appname);
         let exec_path = exec.to_string_lossy();
 
         if let Some(exec_file) = Self::find_exec(exec_path.to_string()) {
@@ -80,7 +81,7 @@ impl AppPurger {
                     "Failed to delete file '{}' from the filesystem: {}",
                     exec_file.display(),
                     e.to_string()
-                ));
+                )).show();
             }
         }
 
@@ -89,7 +90,7 @@ impl AppPurger {
                 "Failed to delete file '{}' from the filesystem: {}",
                 &entry.display(),
                 e.to_string()
-            ));
+            )).show();
         }
 
         AppPurgeProcess::new(appname, false).try_purge();
