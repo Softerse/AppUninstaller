@@ -133,6 +133,7 @@ fn main() -> glib::ExitCode {
                 "gamemoderun",
                 "gapplication",
                 "java",
+                "kcmshell6"
             ];
             if blacklisted_execs.iter().any(|x| {
                 omit_dir_from_cmd((*x.to_owned()).to_string()) == isolate_exec(a.exec.clone())
