@@ -19,7 +19,7 @@
 /// You should have received a copy of the GNU General Public License  
 /// along with this program.  If not, see <https://www.gnu.org/licenses/>.
 use crate::dialog::Dialog;
-use crate::purge::{AppPurgeProcess, AppPurger};
+use crate::purge::AppPurger;
 use crate::utils;
 use freedesktop_desktop_entry::DesktopEntry as FdoDesktopEntry;
 use gtk::{prelude::*, Align, Dialog as GtkDialog, ResponseType};
@@ -163,7 +163,6 @@ impl DesktopEntry {
             choice.show();
         });
 
-        let name = self.name.clone();
         #[cfg(debug_assertions)]
         opendata.connect_clicked(move |b| {
             let dir_g = AppPurgeProcess::new(name.clone(), true).find_app_files_global();
